@@ -42,6 +42,8 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 var title by remember { mutableStateOf("Home") }
                 var showBackButton by remember { mutableStateOf(false) }
+                var name by remember { mutableStateOf("") }
+                var age by remember { mutableStateOf("") }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -49,22 +51,34 @@ class MainActivity : ComponentActivity() {
                         CustomTopAppBar(
                             title = title,
                             showBackButton = showBackButton,
-                            onBackClick = { navController.popBackStack() }
+                            onBackClick = { navController.popBackStack() },
+                            navController = navController,
+                            name = name,
+                            age = age
                         )
                     },
                     bottomBar = {
                         BottomNavigationBar(navController)
                     }
                 ) { innerPadding ->
-                    NavigationHost(navController, innerPadding) { newTitle, showBack ->
-                        title = newTitle
-                        showBackButton = showBack
-                    }
+                    NavigationHost(
+                        navController = navController,
+                        innerPadding = innerPadding,
+                        setTitle = { newTitle, showBack ->
+                            title = newTitle
+                            showBackButton = showBack
+                        },
+                        name = name,
+                        onNameChange = { name = it },
+                        age = age,
+                        onAgeChange = { age = it }
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
@@ -76,7 +90,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         BottomNavigationItem("Profile",
             Icons.Filled.Person,
             Icons.Outlined.Person,
-            "SecondScreen"),
+            "SecondScreen/No Name-No Age"),
         BottomNavigationItem("Settings",
             Icons.Filled.Settings,
             Icons.Outlined.Settings,
@@ -111,10 +125,20 @@ fun BottomNavigationBar(navController: NavHostController) {
 fun CustomTopAppBar(
     title: String,
     showBackButton: Boolean,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    navController: NavHostController,
+    name: String,
+    age: String
 ) {
     CenterAlignedTopAppBar(
         title = { Text(title) },
+        actions =  {
+            val info = "${name.ifEmpty { "No Name" }}-${age.ifEmpty { "No Age" }}"
+           TextButton(onClick = {navController.navigate("SecondScreen/$info") }){
+               Text("Save") // add button for save in the top bar
+           }
+
+        },
         navigationIcon = {
             if (showBackButton) {
                 IconButton(onClick = onBackClick) {
@@ -129,7 +153,11 @@ fun CustomTopAppBar(
 fun NavigationHost(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    setTitle: (String, Boolean) -> Unit
+    setTitle: (String, Boolean) -> Unit,
+    name: String,
+    onNameChange: (String) -> Unit,
+    age: String,
+    onAgeChange: (String) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -138,12 +166,20 @@ fun NavigationHost(
     ) {
         composable("FirstScreen") {
             setTitle("First Screen", false)
-            FirstScreen(navController)
+            FirstScreen(
+                navController = navController,
+                name = name,
+                onNameChange = onNameChange,
+                age = age,
+                onAgeChange = onAgeChange
+            )
         }
-        composable("SecondScreen") {
+        composable("SecondScreen/{info}") { backStackEntry ->
+            val info = backStackEntry.arguments?.getString("info") ?: "No Data"
             setTitle("Second Screen", true)
-            SecondScreen(navController)
+            SecondScreen(navController, info)
         }
+
         composable("ThirdScreen") {
             setTitle("Third Screen", true)
             ThirdScreen(navController)
