@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecondScreen(navController: NavHostController) {
         Column(
@@ -29,8 +28,8 @@ fun SecondScreen(navController: NavHostController) {
         ) {
             Text(text = "Second Screen")
 
-            Button(onClick = { navController.navigate("FirstScreen") }) {
-                Text(text = "Go to the First Screen")
+            Button(onClick = { navController.navigate("ThirdScreen") }) {
+                Text(text = "Go to the Third Screen")
             }
         }
     }
